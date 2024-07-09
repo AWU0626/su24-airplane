@@ -1,24 +1,21 @@
 package airplane.g6;
 
 import java.util.ArrayList;
-
+import airplane.sim.Player;
 import airplane.sim.Plane;
+import org.apache.log4j.Logger;
 
-class Group6Player extends airplane.sim.Player {
-    String playerName;
-
-    public Group6Player(String playerName) {
-        this.playerName = playerName;
-    }
+class Group6Player extends Player {
+    private Logger logger = Logger.getLogger(this.getClass()); // for logging
 
     @Override
     public String getName() {
-        return this.playerName;
+        return "G6 Player";
     }
 
     @Override
     public void startNewGame(ArrayList<Plane> planes) {
-        throw new UnsupportedOperationException("Unimplemented method 'startNewGame'");
+        logger.info("Start new game");
     }
 
     @Override
@@ -32,6 +29,7 @@ class Group6Player extends airplane.sim.Player {
             }
 
             if (currentPlane.getDepartureTime() == round && currentPlane.getBearing() == -1) {
+                logger.info("Time: " + round);
                 currentPlane.setBearing(calculateBearing(currentPlane.getLocation(), currentPlane.getDestination()));
             } else {
                 double radialBearing = currentPlane.getBearing() % 360;
@@ -61,7 +59,6 @@ class Group6Player extends airplane.sim.Player {
             }
         }
 
-        round++;
         return bearings;
     }
 
