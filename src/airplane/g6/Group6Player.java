@@ -19,30 +19,6 @@ public class Group6Player extends airplane.sim.Player {
         logger.info("Start new game");
     }
 
-    public double[] updatePlanes1(ArrayList<Plane> planes, int round, double[] bearings) {
-        for (Plane p : planes) {
-            if (p.getBearing() != -1 && p.getBearing() != -2) return bearings;
-        }
-
-        int minTime = 10000;
-        int minIndex = 10000;
-        for (int i = 0; i < planes.size(); i++) {
-            Plane p = planes.get(i);
-            if (p.getDepartureTime() < minTime && p.getBearing() == -1 && p.dependenciesHaveLanded(bearings)) {
-                minIndex = i;
-                minTime = p.getDepartureTime();
-            }
-        }
-
-        if (round >= minTime) {
-            Plane p = planes.get(minIndex);
-            bearings[minIndex] = calculateBearing(p.getLocation(), p.getDestination());
-        }
-
-        return bearings;
-    }
-
-
     @Override
     public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
         int size = planes.size();
