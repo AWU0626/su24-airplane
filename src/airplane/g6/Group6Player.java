@@ -1,11 +1,12 @@
 package airplane.g6;
 
 import java.util.ArrayList;
-import airplane.sim.Player;
+
 import airplane.sim.Plane;
+import airplane.sim.Player;
 import org.apache.log4j.Logger;
 
-class Group6Player extends Player {
+public class Group6Player extends airplane.sim.Player {
     private Logger logger = Logger.getLogger(this.getClass()); // for logging
 
     @Override
@@ -18,42 +19,72 @@ class Group6Player extends Player {
         logger.info("Start new game");
     }
 
+    public double[] updatePlanes1(ArrayList<Plane> planes, int round, double[] bearings) {
+        for (Plane p : planes) {
+            if (p.getBearing() != -1 && p.getBearing() != -2) return bearings;
+        }
+
+        int minTime = 10000;
+        int minIndex = 10000;
+        for (int i = 0; i < planes.size(); i++) {
+            Plane p = planes.get(i);
+            if (p.getDepartureTime() < minTime && p.getBearing() == -1 && p.dependenciesHaveLanded(bearings)) {
+                minIndex = i;
+                minTime = p.getDepartureTime();
+            }
+        }
+
+        if (round >= minTime) {
+            Plane p = planes.get(minIndex);
+            bearings[minIndex] = calculateBearing(p.getLocation(), p.getDestination());
+        }
+
+        return bearings;
+    }
+
+
     @Override
     public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
         int size = planes.size();
+        int[] delay = new int[planes.size()];
 
         for (int i = 0; i < size; i++) {
-            Plane currentPlane = planes.get(i);
-            if (currentPlane.getLocation() == currentPlane.getDestination()) {
-                currentPlane.setBearing(-2);
-            }
+            delay[i] = 10 * i;
+        }
 
-            if (currentPlane.getDepartureTime() == round && currentPlane.getBearing() == -1) {
-                logger.info("Time: " + round);
-                currentPlane.setBearing(calculateBearing(currentPlane.getLocation(), currentPlane.getDestination()));
-            } else {
-                double radialBearing = currentPlane.getBearing() % 360;
-                radialBearing = (radialBearing - 90) * Math.PI / 180;
-                double newX = currentPlane.getX() + (Math.cos(radialBearing));
-                double newY = currentPlane.getY() + (Math.sin(radialBearing));
+        // single plane
+        if (size == 1) {
+            if (bearings[0] == -2) return bearings;
+            bearings[0] = calculateBearing(planes.get(0).getLocation(), planes.get(0).getDestination());
+            return bearings;
+        }
 
-                currentPlane.setX(newX);
-                currentPlane.setY(newY);
-            }
+        // otherwise
+        for (int i = 0; i < size; i++) {
+            if (bearings[i] == - 2) continue; // stopping condition
 
+            // delay
+            if (round >= delay[i]) {
+                bearings[i] = Player.calculateBearing(planes.get(i).getLocation(), planes.get(i).getDestination());
 
-            for (int j = i; j < size; j++) {
-                Plane others = planes.get(j);
+                for (int j = 0; j < size; j++) {
+                    if (j != i) {
+                        Plane p1 = planes.get(i);
+                        Plane p2 = planes.get(j);
 
-                if (j != i) {
-                    double distanceXSquared = (others.getX() - currentPlane.getX()) * (others.getX() - currentPlane.getX());
-                    double distanceYSquared = (others.getY() - currentPlane.getY()) * (others.getY() - currentPlane.getY());
-                    double distance = Math.sqrt(distanceXSquared + distanceYSquared);
-                    if (distance < 10) {
-                        currentPlane.setBearing(currentPlane.getBearing() + 10);
-                        others.setBearing(others.getBearing() + 10);
-                        bearings[i] = currentPlane.getBearing();
-                        bearings[j] = others.getBearing();
+                        if (p1.getLocation().distance(p2.getLocation()) <= 50) {
+                            double newBearing = Player.calculateBearing(planes.get(i).getLocation(), planes.get(i).getDestination()) + 10;
+                            double multiplier = planes.get(i).getLocation().distance(planes.get(i).getDestination());
+                            multiplier /= 1 + planes.get(i).getLocation().distance(planes.get(i).getDestination());
+
+                            if (Math.abs(newBearing - bearings[i]) >= 10) { bearings[i] += 9 * multiplier; }
+                        } else if (p1.getLocation().distance(p2.getLocation()) <= 20) {
+                            double newBearing = Player.calculateBearing(planes.get(i).getLocation(), planes.get(i).getDestination()) + 10;
+                            double multiplier = planes.get(i).getLocation().distance(planes.get(i).getDestination());
+                            multiplier /= 1 + planes.get(i).getLocation().distance(planes.get(i).getDestination());
+
+                            if (Math.abs(newBearing - bearings[i]) >= 10) { bearings[i] += 9.2 * multiplier; }
+                        }
                     }
                 }
             }
@@ -61,5 +92,4 @@ class Group6Player extends Player {
 
         return bearings;
     }
-
 }
