@@ -4,8 +4,8 @@
 <properties>
 	<comment>A sample configuration file.</comment>
 	
-<entry key="airplane.classes">airplane.g6.SerializedPlayer</entry>
-<!--	<entry key="airplane.classes">airplane.g6.Group6Player</entry>-->
+<!-- <entry key="airplane.classes">airplane.g6.SerializedPlayer</entry> -->
+<entry key="airplane.classes">airplane.g6.Group6Player</entry>
 	
 	<entry key = "airplane.numgames">1</entry>
 	
